@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="app"></div>
+<script src="react.js"></script>
+<script src="react-dom.js"></script>
+<script src="babel.js"></script>
+<script type="text/babel">
+    class LifecycleLoggerComponent extends React.PureComponent {
+        static getName() {
+        }
+
+        componentDidMount() {
+            console.log(this.constructor.getName() + '::componentDidMount');
+        }
+
+        componentWillUnmount() {
+            console.log(this.constructor.getName() + '::componentWillUnmount');
+        }
+
+        componentDidUpdate() {
+            console.log(this.constructor.getName() + '::componentDidUpdate');
+        }
+    }
+
+    class Counter extends LifecycleLoggerComponent {
+        static getName() {
+            return 'Counter';
+        }
+
+        render() {
+            console.log(this.constructor.getName() + '::render');
+            return <h3>{this.props.count}</h3>
+        }
+    }
+
+    Counter.defaultProps = {
+        count: 0
+    }
+
+    class TextAreaCounter extends LifecycleLoggerComponent {
+        constructor() {
+            super();
+            this.state = {};
+            this.onTextChange = this.onTextChange.bind(this);
+        }
+
+        static getName() {
+            return 'TextAreaCounter';
+        }
+
+        render() {
+            console.log(this.constructor.getName() + '::render');
+            const text = 'text' in this.state ? this.state.text : this.props.text;
+
+            return (
+                <div>
+                    <textarea value={text} onChange={this.onTextChange}/>
+                    {text.length > 0 ? <Counter count={text.length}/> : null}
+                </div>
+            )
+        }
+
+        onTextChange(e) {
+            this.setState({text: e.target.value})
+        }
+    }
+
+    TextAreaCounter.defaultProps = {
+        text: "Hello World"
+    }
+
+    ReactDOM.render(
+        <TextAreaCounter/>, document.getElementById('app')
+    )
+</script>
+</body>
+</html>

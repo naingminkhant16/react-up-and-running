@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Textarea Counter</title>
+</head>
+<body>
+<div id="app"></div>
+<script src="react.js"></script>
+<script src="react-dom.js"></script>
+<script src="babel.js"></script>
+<script type="text/babel">
+    class TextAreaCounter extends React.Component {
+        constructor() {
+            super();
+            this.state = {};
+            this.onTextChange = this.onTextChange.bind(this);
+            console.log("Constructor")
+        }
+
+        componentDidMount() {
+            console.log("Component DidMount")
+        }
+
+        componentWillUnmount() {
+            console.log("Component WillUnmount")
+        }
+
+        componentDidUpdate(prevProps, prevState, snapshot) {
+            console.log(`Component DidUpdate`, prevProps, prevState, snapshot)
+        }
+
+        getSnapshotBeforeUpdate(prevPros, prevState) {
+            console.log("Component GetSnapshotBeforeUpdate", prevPros, prevState)
+        }
+
+        shouldComponentUpdate(nextProps, nextState) {
+            console.log(`Component ShouldComponentUpdate`, nextProps, nextState)
+            return nextState.text.length >= 3;
+        }
+
+        render() {
+            const text = 'text' in this.state ? this.state.text : this.props.text;
+            return (
+                <div>
+                    <textarea value={text} onChange={this.onTextChange}/>
+                    <h3>{text.length}</h3>
+                </div>
+            )
+        }
+
+        onTextChange = (event) => {
+            this.setState({text: event.target.value})
+        }
+    }
+
+    TextAreaCounter.defaultProps = {
+        text: 'Count me as I type'
+    }
+
+    const myTextareaCounter = ReactDOM.render(<TextAreaCounter/>, document.getElementById('app'));
+</script>
+</body>
+</html>

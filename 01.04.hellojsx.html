@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="app"></div>
+<script src="react.js"></script>
+<script src="react-dom.js"></script>
+<script src="babel.js"></script>
+<script type="text/babel">
+    // const Hello = () => {
+    //     return (<h1 id="myTitle">
+    //         <span>Hello <em>JSX</em> World</span>
+    //     </h1>)
+    // }
+    //
+    // const MyComponent = () => {
+    //     return React.createElement('h2', null, 'Hello JSX');
+    // }
+
+    // function component
+    // const MyComponent = ({name, job}) => {
+    //     return <span>My name is <em>{name}</em>, the {job}.</span>
+    // }
+    //
+    // MyComponent.defaultProps = {job: 'developer'};
+
+    // class component
+    class MyComponent extends React.Component {
+        render() {
+            return (
+                <span>My name is <em>{this.props.name}</em>, the {this.props.job}</span>
+            )
+        }
+    }
+
+    MyComponent.defaultProps = {job: 'developer'};
+
+    ReactDOM.render(
+        <MyComponent name="Naing Min Khant"/>,
+        document.getElementById('app')
+    )
+</script>
+</body>
+</html>
