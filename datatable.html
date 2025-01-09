@@ -38,34 +38,52 @@
         ],
     ];
 
+    function clone(o) {
+        return JSON.parse(JSON.stringify(o));
+    }
+
     class Excel extends React.Component {
         constructor(props) {
             super(props);
-            const data = props.initialData.map((row, index) => row.concat(index));
+            const data = clone(props.initialData).map((row, index) => row.concat(index));
 
             this.state = {
                 data,
                 sortBy: null,
                 desc: false,
-                edit: null,
+                edit: null,// {row: index, column: index}
                 search: false,
             };
 
             this.preSearchData = null;
+
+            // log the initial state
+            this.log = [clone(this.state)];
 
             this.sort = this.sort.bind(this);
             this.showEditor = this.showEditor.bind(this);
             this.save = this.save.bind(this);
             this.toggleSearch = this.toggleSearch.bind(this);
             this.search = this.search.bind(this);
-            
+            this.replay = this.replay.bind(this);
+            this.logSetState = this.logSetState.bind(this);
+        }
+
+        componentDidMount() {
+            document.addEventListener('keydown', (e) => {
+                if (e.altKey && e.shiftKey && e.keyCode === 82) {
+                    // ALT+SHIFT+R(replay)
+                    this.replay();
+                }
+            })
         }
 
         sort(e) {
             const column = e.target.cellIndex;
             const desc = this.state.sortBy === column && !this.state.desc;// decide order
-            this.setState({
-                data: this.state.data.sort((a, b) => {
+
+            this.logSetState({
+                data: clone(this.state.data).sort((a, b) => {
                     if (a[column] === b[column]) return 0;
                     return desc ?
                         a[column] < b[column] ? 1 : -1
@@ -79,7 +97,7 @@
         }
 
         showEditor(e) {
-            this.setState({
+            this.logSetState({
                 edit: {
                     row: parseInt(e.target.parentNode.dataset.row, 10),
                     column: e.target.cellIndex
@@ -90,14 +108,14 @@
         save(e) {
             e.preventDefault();
             const input = e.target.firstChild;
-            const data = this.state.data.map(row => {
+            const data = clone(this.state.data).map(row => {
                 if (row[row.length - 1] === this.state.edit.row) {
                     row[this.state.edit.column] = input.value;
                 }
                 return row;
             });
 
-            this.setState({edit: null, data});
+            this.logSetState({edit: null, data});
             if (this.preSearchData) {
                 this.preSearchData[this.state.edit.row][this.state.edit.column] = input.value;
             }
@@ -106,24 +124,43 @@
         toggleSearch() {
             if (this.state.search) {
                 //close search
-                this.setState({data: this.preSearchData, search: false});
+                this.logSetState({data: this.preSearchData, search: false});
                 this.preSearchData = null;
             } else {
                 // open search
                 this.preSearchData = this.state.data;
-                this.setState({search: true});
+                this.logSetState({search: true});
             }
         }
 
         search(e) {
             const needle = e.target.value.toLowerCase();
             if (!needle) {
-                this.setState({data: this.preSearchData});
+                this.logSetState({data: this.preSearchData});
                 return;
             }
             const idx = e.target.dataset.idx;
             const searchData = this.preSearchData.filter(row => row[idx].toString().toLowerCase().indexOf(needle) > -1);
-            this.setState({data: searchData});
+            this.logSetState({data: searchData});
+        }
+
+        logSetState(newState) {
+            this.log.push(clone(newState));// store old state
+            this.setState(newState);
+        }
+
+        replay() {
+            if (this.log.length === 1) {
+                console.warn('No State Change to replay yet.');
+                return;
+            }
+            let idx = -1;
+            const interval = setInterval(() => {
+                if (++idx === this.log.length - 1) {
+                    clearInterval(interval);
+                }
+                this.setState(this.log[idx]);
+            }, 1000);
         }
 
         render() {
@@ -153,7 +190,7 @@
                                     if (this.state.sortBy === index) {
                                         title += this.state.desc ? '\u2191' : '\u2193';
                                     }
-                                    return <th onClick={this.sort} key={index}>{title}</th>
+                                    return <th key={index}>{title}</th>
                                 })
                             }
                         </tr>
