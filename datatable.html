@@ -68,6 +68,8 @@
             this.replay = this.replay.bind(this);
             this.logSetState = this.logSetState.bind(this);
             this.keydownHandler = this.keydownHandler.bind(this);
+            this.downloadJson = this.download.bind(this, 'json');
+            this.downloadCsv = this.download.bind(this, 'csv');
         }
 
         componentDidMount() {
@@ -172,6 +174,27 @@
             }, 1000);
         }
 
+        download(format, ev) {
+            const data = clone(this.state.data).map(row => {
+                row.pop();// drop last col, record id
+                return row;
+            });
+            const contents = (format === 'json')
+                ? JSON.stringify(data, null, ' ')
+                : data.reduce((result, row) => {
+                    return result + row.reduce((rowContent, cellContent, index) => {
+                        const cell = cellContent.replace(/"/g, '""');
+                        const delimiter = index < row.length - 1 ? ',' : '';
+                        return rowContent + '"' + delimiter + '"' + cellContent;
+                    }, '') + '\n';
+                }, '');
+
+            const URL = window.URL || window.webkitURL;
+            const blob = new Blob([contents], {type: 'text/' + format});
+            ev.target.href = URL.createObjectURL(blob);
+            ev.target.download = 'data.' + format;
+        }
+
         render() {
             // search inputs
             const searchRow = !this.state.search ? null :
@@ -188,9 +211,13 @@
 
             return (
                 <div>
-                    <button className="toolbar" onClick={this.toggleSearch}>
-                        {this.state.search ? 'Hide Search' : 'Show Search'}
-                    </button>
+                    <div className="toolbar">
+                        <button className="toolbar" onClick={this.toggleSearch}>
+                            {this.state.search ? 'Hide Search' : 'Show Search'}
+                        </button>
+                        <a href="data.json" onClick={this.downloadJson}> Export Json</a>
+                        <a href="data.csv" onClick={this.downloadCsv}>Export CSV</a>
+                    </div>
                     <table style={{width: "100%"}} border={1}>
                         <thead onClick={this.sort}>
                         <tr>
