@@ -3,6 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Data Table</title>
+    <style>
+        .btn {
+            background-color: #fff522;
+            color: #1a1818;
+            border: 1px solid #1a1818;
+            border-radius: 5px;
+            padding: 5px 10px;
+            text-decoration: none;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
 <div id="app"></div>
@@ -74,6 +86,17 @@
 
         componentDidMount() {
             document.addEventListener('keydown', this.keydownHandler);
+
+            fetch('https://www.phpied.com/files/reactbook/table-data.json')
+                .then(response => response.json())
+                .then(data => {
+                    const books = clone(data).map((row, index) => {
+                        row.push(index);
+                        return row;
+                    });
+                    this.setState({data: books});
+                })
+                .catch(error => console.error(error));
         }
 
         componentWillUnmount() {
@@ -212,11 +235,11 @@
             return (
                 <div>
                     <div className="toolbar">
-                        <button className="toolbar" onClick={this.toggleSearch}>
+                        <button className="btn" onClick={this.toggleSearch}>
                             {this.state.search ? 'Hide Search' : 'Show Search'}
                         </button>
-                        <a href="data.json" onClick={this.downloadJson}> Export Json</a>
-                        <a href="data.csv" onClick={this.downloadCsv}>Export CSV</a>
+                        <a href="data.json" className="btn" onClick={this.downloadJson}> Export Json</a>
+                        <a href="data.csv" className="btn" onClick={this.downloadCsv}>Export CSV</a>
                     </div>
                     <table style={{width: "100%"}} border={1}>
                         <thead onClick={this.sort}>
@@ -232,33 +255,49 @@
                         </tr>
 
                         </thead>
-                        <tbody onDoubleClick={this.showEditor}>
-                        {searchRow}
+
                         {
-                            this.state.data.map((row, rowindex) => {
-                                // the last piece of data in a row is the ID
-                                const recordId = row[row.length - 1];
-                                return <tr key={recordId} data-row={recordId}>{row.map((cell, colindex) => {
-                                    // do not show the record ID in the table UI
-                                    if (colindex === this.props.headers.length) return;
-
-                                    const edit = this.state.edit;
-
-                                    return <td key={colindex}>
-                                        {
-                                            (edit && edit.row === rowindex && edit.column === colindex)
-                                                ? (
-                                                    <form onSubmit={this.save}><input type="text" defaultValue={cell}/>
-                                                    </form>
-                                                )
-                                                : cell
-                                        }
-                                    </td>;
-                                })}
+                            this.state.data.length === 0 ?
+                                <tbody>
+                                <tr>
+                                    <td colSpan={this.props.headers.length}
+                                        style={{'textAlign': 'center', 'color': '#333'}}>Loading
+                                        Data...
+                                    </td>
                                 </tr>
-                            })
+                                </tbody>
+                                : (
+                                    <tbody onDoubleClick={this.showEditor}>
+                                    {searchRow}
+                                    {
+                                        this.state.data.map((row, rowindex) => {
+                                            // the last piece of data in a row is the ID
+                                            const recordId = row[row.length - 1];
+                                            return <tr key={recordId} data-row={recordId}>{row.map((cell, colindex) => {
+                                                // do not show the record ID in the table UI
+                                                if (colindex === this.props.headers.length) return;
+
+                                                const edit = this.state.edit;
+
+                                                return <td key={colindex}>
+                                                    {
+                                                        (edit && edit.row === rowindex && edit.column === colindex)
+                                                            ? (
+                                                                <form onSubmit={this.save}><input type="text"
+                                                                                                  defaultValue={cell}/>
+                                                                </form>
+                                                            )
+                                                            : cell
+                                                    }
+                                                </td>;
+                                            })}
+                                            </tr>
+                                        })
+                                    }
+                                    </tbody>
+                                )
                         }
-                        </tbody>
+
                     </table>
                 </div>
             )
@@ -271,7 +310,7 @@
         initialData: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string))
     }
 
-    ReactDOM.render(<Excel headers={headers} initialData={data}/>, document.getElementById('app'));
+    ReactDOM.render(<Excel headers={headers} initialData={[]}/>, document.getElementById('app'));
 </script>
 </body>
 </html>
