@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>useLayoutEffect</title>
+</head>
+<body>
+<div id="app"></div>
+<script src="react/react.js"></script>
+<script src="react/react-dom.js"></script>
+<script src="react/prop-types.js"></script>
+<script src="react/babel.js"></script>
+<script type="text/babel">
+    function Example({layout}) {
+        if (layout === null) {
+            return null;
+        }
+        if (layout) {
+            React.useLayoutEffect(() => {
+                const table = document.getElementsByTagName('table')[0];
+                console.log(table.offsetWidth);
+                table.setAttribute('width', '250px');
+            }, []);
+        } else {
+            React.useEffect(() => {
+                const table = document.getElementsByTagName('table')[0];
+                console.log(table.offsetWidth)
+                // table.width = '250px';
+                table.setAttribute('width', '250px');
+            }, []);
+        }
+
+        return (
+            <table border={1}>
+                <thead>
+                <tr>
+                    <th>Random</th>
+                </tr>
+                </thead>
+                <tbody>
+                {
+                    Array.from(Array(1000)).map((_, idx) => (
+                        <tr key={idx}>
+                            <td width={Math.random() * 800}>{Math.random()}</td>
+                        </tr>
+                    ))
+                }
+                </tbody>
+            </table>
+        )
+    }
+
+    function ExampleParent() {
+        const [layout, setLayout] = React.useState(null);
+        return (
+            <div>
+                <button onClick={() => setLayout(false)}>useEffect</button>
+                {' '}
+                <button onClick={() => setLayout(true)}>useLayoutEffect</button>
+                {' '}
+                <button onClick={() => setLayout(null)}>Clear</button>
+                <Example layout={layout}/>
+            </div>
+        )
+    }
+
+    ReactDOM.render(<ExampleParent/>, document.getElementById('app'));
+</script>
+</body>
+</html>
